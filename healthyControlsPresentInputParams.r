@@ -9,15 +9,17 @@ args = commandArgs(trailingOnly=TRUE)
 cat(":: Installing / loading the R packages ::\n:: required by the script ::\n\n")
 
 # Here we install the CRAN missing packages
-list.of.packages <- c("easypackages", "xml2", "markdown", "knitr", "rmarkdown", "pacman", "dplyr") # other packages
+#  "markdown", "knitr", "rmarkdown", "pacman", 
+list.of.packages <- c("easypackages", "xml2","dplyr") # other packages
 new_packages_to_install <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new_packages_to_install)) install.packages(new_packages_to_install, repos="https://utstat.toronto.edu/cran/")
 
 # Here we install the Bioconductor missing packages
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-listOfBiocPackages <- c("annotate", "Biobase", "GEOquery")
+    install.packages("BiocManager", repos="https://utstat.toronto.edu/cran/")
+#    "annotate"
+listOfBiocPackages <- c("Biobase", "GEOquery")
 
 bioCpackagesNotInstalled <- which( !listOfBiocPackages %in% rownames(installed.packages()) )
 if(length(bioCpackagesNotInstalled)) cat("package missing listOfBiocPackages[", bioCpackagesNotInstalled, "]: ", listOfBiocPackages[bioCpackagesNotInstalled], "\n", sep="")
@@ -156,7 +158,38 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                 
                 if(verbose == TRUE) cat("=== === === === === ", GSE_code, " === === === === ===  \n", sep="")
                 
-               healthyControlWordPresent <- grepl("healthy control", (gset@phenoData@data)) %>% any()
+                healthyWordPresent <- grepl("healthy", (gset@phenoData@data)) %>% any()
+                if(healthyWordPresent == TRUE) {
+                
+                    if(verbose == TRUE) cat(":: The keyword \"healthy\" was found in this dataset annotations (", GSE_code, ")\n", sep="")
+                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
+		            cat("on ", length(healthy_indexes), " feature(s)\n", sep="")
+                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
+                    
+                    countFeatures <- 1
+                    for(i in healthy_indexes){
+                        this_feature <- (gset@phenoData@data)[i] %>% colnames()  
+                        if(verbose == TRUE)  cat("\n(", countFeatures, ") \"", this_feature, "\" feature\n", sep="")
+                        if(verbose == TRUE) (gset@phenoData@data)[i] %>% table() %>% print()
+                        
+                        thisFeatureGroups <- (gset@phenoData@data)[i] %>% table()
+                        thisFeatureGroupsNames <- thisFeatureGroups %>% names()
+                        numGroupsInThisFeature <- thisFeatureGroups  %>% nrow()
+
+                        for(k in 1:length(thisFeatureGroups)) {
+                                cat(thisFeatureGroupsNames[k], ": ", sep="")
+                                thisFeatureGroupPerc <- thisFeatureGroups[[k]] * 100 / (gset@phenoData@data) %>% nrow()
+                                cat("\t", dec_two(thisFeatureGroupPerc), "%\n", sep="")
+                        }
+                        
+                        countFeatures <- countFeatures + 1
+                    }
+                } else { 
+                    if(verbose == TRUE) cat(":: The keyword \"healthy\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
+                }     
+                
+                
+           healthyControlWordPresent <- grepl("healthy control", (gset@phenoData@data)) %>% any()
 	      if(healthyControlWordPresent == TRUE) {
 	      
 		       if(verbose == TRUE) cat(":: The keyword \"healthy control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
@@ -181,16 +214,17 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                     }
                     
                     countFeatures <- countFeatures + 1
-		       }
-	      } else { 
-		      if(verbose == TRUE) cat(":: The keyword \"healthy control\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
-	      }            
+		          }
+                } else { 
+                    if(verbose == TRUE) cat(":: The keyword \"healthy control\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
+                }            
             }
                         
             if(verbose == TRUE)  cat("=== === === === === === === === === === === ===  \n", sep="")
             
-            cat("\nhealthyControlsCheck() call output: were healthy controls found in the ", GEO_code, " dataset? ", healthyControlWordPresent, "\n", sep="")
-            return(healthyControlWordPresent)
+            outcome <- (healthyControlWordPresent | healthyWordPresent)
+            cat("\nhealthyControlsCheck() call output: were healthy controls found in the ", GEO_code, " dataset? ", outcome, "\n", sep="")
+            return(outcome)
 }   
 
   GEO_code <- inputGEOcode
