@@ -189,11 +189,11 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                 }     
                 
                 
-           healthyControlWordPresent <- grepl("healthy control", (gset@phenoData@data)) %>% any()
+           healthyControlWordPresent <- grepl("control", (gset@phenoData@data)) %>% any()
 	      if(healthyControlWordPresent == TRUE) {
 	      
-		       if(verbose == TRUE) cat(":: The keyword \"healthy control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
-		       healthy_control_indexes <- which(grepl("healthy control", (gset@phenoData@data)))
+		       if(verbose == TRUE) cat(":: The keyword \"control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
+		       healthy_control_indexes <- which(grepl("control", (gset@phenoData@data)))
 		       cat("on ", length(healthy_control_indexes), " feature(s)\n", sep="")
 		       
 		       countFeatures <- 1
@@ -216,7 +216,7 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                     countFeatures <- countFeatures + 1
 		          }
                 } else { 
-                    if(verbose == TRUE) cat(":: The keyword \"healthy control\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
+                    if(verbose == TRUE) cat(":: The keyword \"control\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
                 }            
             }
                         

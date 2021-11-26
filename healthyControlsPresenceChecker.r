@@ -64,11 +64,42 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
 	      
 	      if(verbose == TRUE) cat("=== === === === === ", GSE_code, " === === === === ===  \n", sep="")
 	      
-	      healthyControlWordPresent <- grepl("healthy control", (gset@phenoData@data)) %>% any()
+                healthyWordPresent <- grepl("healthy|Healthy", (gset@phenoData@data)) %>% any()
+                if(healthyWordPresent == TRUE) {
+                
+                    if(verbose == TRUE) cat(":: The keyword \"healthy\" was found in this dataset annotations (", GSE_code, ")\n", sep="")
+                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
+		            cat("on ", length(healthy_indexes), " feature(s)\n", sep="")
+                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
+                    
+                    countFeatures <- 1
+                    for(i in healthy_indexes){
+                        this_feature <- (gset@phenoData@data)[i] %>% colnames()  
+                        if(verbose == TRUE)  cat("\n(", countFeatures, ") \"", this_feature, "\" feature\n", sep="")
+                        if(verbose == TRUE) (gset@phenoData@data)[i] %>% table() %>% print()
+                        
+                        thisFeatureGroups <- (gset@phenoData@data)[i] %>% table()
+                        thisFeatureGroupsNames <- thisFeatureGroups %>% names()
+                        numGroupsInThisFeature <- thisFeatureGroups  %>% nrow()
+
+                        for(k in 1:length(thisFeatureGroups)) {
+                                cat(thisFeatureGroupsNames[k], ": ", sep="")
+                                thisFeatureGroupPerc <- thisFeatureGroups[[k]] * 100 / (gset@phenoData@data) %>% nrow()
+                                cat("\t", dec_two(thisFeatureGroupPerc), "%\n", sep="")
+                        }
+                        
+                        countFeatures <- countFeatures + 1
+                    }
+                } else { 
+                    if(verbose == TRUE) cat(":: The keyword \"healthy\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
+                }  
+	      
+	      
+	      healthyControlWordPresent <- grepl("control|Control|controls|Controls", (gset@phenoData@data)) %>% any()
 	      if(healthyControlWordPresent == TRUE) {
 	      
-		       if(verbose == TRUE) cat(":: The keyword \"healthy control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
-		       healthy_control_indexes <- which(grepl("healthy control", (gset@phenoData@data)))
+		       if(verbose == TRUE) cat(":: The keyword \"control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
+		       healthy_control_indexes <- which(grepl("control", (gset@phenoData@data)))
 		       cat("on ", length(healthy_control_indexes), " feature(s)\n", sep="")
 		       
 		       countFeatures <- 1
@@ -91,14 +122,15 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                     countFeatures <- countFeatures + 1
 		       }
 	      } else { 
-		      if(verbose == TRUE) cat(":: The keyword \"healthy control\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
+		      if(verbose == TRUE) cat(":: The keyword \"control\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
 	      }            
             }
                         
             if(verbose == TRUE)  cat("=== === === === === === === === === === === ===  \n", sep="")
             
-            cat("\nhealthyControlsCheck() call output: were healthy controls found in the ", GEO_code, " dataset? ", healthyControlWordPresent, "\n", sep="")
-            return(healthyControlWordPresent)
+            outcome <- (healthyControlWordPresent | healthyWordPresent)
+            if(verbose == TRUE)  cat("\nhealthyControlsCheck() call output: were healthy controls found in the ", GSE_code, " dataset? ", outcome, "\n", sep="")
+            return(outcome)
 }   
 
   
