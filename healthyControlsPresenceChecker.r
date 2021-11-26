@@ -42,7 +42,7 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
            checked_html_text_url <- lapply(complete_url, geneExpressionFromGEO::readUrl)
            
            gset <- NULL
-#             
+             
             if(all(checked_html_text == "EMPTY_STRING")) {
          
                     cat("The web url https://ftp.ncbi.nlm.nih.gov/geo/series/ is unavailable right now. Please try again later. The function will stop here\n")
@@ -63,14 +63,14 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
 	      gset <- gset[[idx]]
 	      
 	      if(verbose == TRUE) cat("=== === === === === ", GSE_code, " === === === === ===  \n", sep="")
-	      
-                healthyWordPresent <- grepl("healthy|Healthy", (gset@phenoData@data)) %>% any()
+                
+                healthyKeywords <- "healthy|Healthy"
+                healthyWordPresent <- grepl(healthyKeywords, (gset@phenoData@data)) %>% any()
                 if(healthyWordPresent == TRUE) {
                 
                     if(verbose == TRUE) cat(":: The keyword \"healthy\" was found in this dataset annotations (", GSE_code, ")\n", sep="")
-                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
+                    healthy_indexes <- which(grepl(healthyKeywords, (gset@phenoData@data)))
 		            cat("on ", length(healthy_indexes), " feature(s)\n", sep="")
-                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
                     
                     countFeatures <- 1
                     for(i in healthy_indexes){
@@ -94,12 +94,12 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                     if(verbose == TRUE) cat(":: The keyword \"healthy\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
                 }  
 	      
-	      
-	      healthyControlWordPresent <- grepl("control|Control|controls|Controls", (gset@phenoData@data)) %>% any()
+	      controlKeywords <- "control|Control|controls|Controls"
+	      healthyControlWordPresent <- grepl(controlKeywords, (gset@phenoData@data)) %>% any()
 	      if(healthyControlWordPresent == TRUE) {
 	      
 		       if(verbose == TRUE) cat(":: The keyword \"control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
-		       healthy_control_indexes <- which(grepl("control", (gset@phenoData@data)))
+		       healthy_control_indexes <- which(grepl(controlKeywords, (gset@phenoData@data)))
 		       cat("on ", length(healthy_control_indexes), " feature(s)\n", sep="")
 		       
 		       countFeatures <- 1

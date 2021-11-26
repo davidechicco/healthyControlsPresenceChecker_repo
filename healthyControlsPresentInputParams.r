@@ -10,7 +10,7 @@ cat(":: Installing / loading the R packages ::\n:: required by the script ::\n\n
 
 # Here we install the CRAN missing packages
 #  "markdown", "knitr", "rmarkdown", "pacman", 
-list.of.packages <- c("easypackages", "xml2","dplyr") # other packages
+list.of.packages <- c("easypackages", "xml2","dplyr", "geneExpressionFromGEO") # other packages
 new_packages_to_install <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new_packages_to_install)) install.packages(new_packages_to_install, repos="https://utstat.toronto.edu/cran/")
 
@@ -46,67 +46,6 @@ if (length(args) != 2) {
   
 }
 
-#' Function that returns numeric values with 2 decimal numbers.
-#' 
-#' @param x input numeric value with N decimal numbers.
-#' @return a numeric value with 2 decimal numbers.
-#' @examples
-#' aaa <- dec_two(8.31232)
- dec_two <- function(x) {
-  return (format(round(x, 2), nsmall = 2));
-}
-
-
-
-#' Function that reads in a URL to check and verifies if it exists (function taken from https://stackoverflow.com/a/12195574 )
-#' 
-#' @param url the URL of a webpage
-#' @return the output of a webpage verification check
-#' @examples y <- readUrl("http://stat.ethz.ch/R-manual/R-devel/library/base/html/connections.html")
-readUrl <- function(url) {
-    out <- tryCatch(
-        {
-            # Just to highlight: if you want to use more than one 
-            # R expression in the "try" part then you'll have to 
-            # use curly brackets.
-            # 'tryCatch()' will return the last evaluated expression 
-            # in case the "try" part was completed successfully
-
-
-            readLines(con=url, warn=FALSE) 
-            # The return value of `readLines()` is the actual value 
-            # that will be returned in case there is no condition 
-            # (e.g. warning or error). 
-            # You don't need to state the return value via `return()` as code 
-            # in the "try" part is not wrapped inside a function (unlike that
-            # for the condition handlers for warnings and error below)
-        },
-        error=function(cond) {
-            message(paste("URL does not seem to exist:", url))
-            message("Here's the original error message:")
-            message(cond)
-            # Choose a return value in case of error
-            return("EMPTY_STRING")
-        },
-        warning=function(cond) {
-            message(paste("URL caused a warning:", url))
-            message(cond)
-            # Choose a return value in case of warning
-            return("EMPTY_STRING")
-        },
-        finally={
-        # NOTE:
-        # Here goes everything that should be executed at the end,
-        # regardless of success or error.
-        # If you want more than one expression to be executed, then you 
-        # need to wrap them in curly brackets ({...}); otherwise you could
-        # just have written 'finally=<expression>' 
-            message(paste("Processed URL:", url))
-        }
-    )    
-    return(out)
-}
-
 #' Function that reads in the GEO code of a dataset, and returns true if there's at least a feature
 #' containing the healthy controls 
 #'
@@ -136,7 +75,7 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
            checked_html_text_url <- lapply(complete_url, readUrl)
            
            gset <- NULL
-#             
+             
             if(all(checked_html_text == "EMPTY_STRING")) {
          
                     cat("The web url https://ftp.ncbi.nlm.nih.gov/geo/series/ is unavailable right now. Please try again later. The function will stop here\n")
@@ -158,13 +97,13 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                 
                 if(verbose == TRUE) cat("=== === === === === ", GSE_code, " === === === === ===  \n", sep="")
                 
-                healthyWordPresent <- grepl("healthy", (gset@phenoData@data)) %>% any()
+                healthyKeywords <- "healthy|Healthy"
+                healthyWordPresent <- grepl(healthyKeywords, (gset@phenoData@data)) %>% any()
                 if(healthyWordPresent == TRUE) {
                 
                     if(verbose == TRUE) cat(":: The keyword \"healthy\" was found in this dataset annotations (", GSE_code, ")\n", sep="")
-                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
+                    healthy_indexes <- which(grepl(healthyKeywords, (gset@phenoData@data)))
 		            cat("on ", length(healthy_indexes), " feature(s)\n", sep="")
-                    healthy_indexes <- which(grepl("healthy", (gset@phenoData@data)))
                     
                     countFeatures <- 1
                     for(i in healthy_indexes){
@@ -188,12 +127,12 @@ healthyControlsCheck <- function(datasetGeoCode, verbose = FALSE)
                     if(verbose == TRUE) cat(":: The keyword \"healthy\" was NOT found among the annotations of this dataset (", GSE_code, ")\n", sep="") 
                 }     
                 
-                
-           healthyControlWordPresent <- grepl("control", (gset@phenoData@data)) %>% any()
+           controlKeywords <- "control|Control|controls|Controls"     
+           healthyControlWordPresent <- grepl(controlKeywords, (gset@phenoData@data)) %>% any()
 	      if(healthyControlWordPresent == TRUE) {
 	      
 		       if(verbose == TRUE) cat(":: The keyword \"control\" was found in this dataset annotations (", GSE_code, ") ", sep="")
-		       healthy_control_indexes <- which(grepl("control", (gset@phenoData@data)))
+		       healthy_control_indexes <- which(grepl(controlKeywords, (gset@phenoData@data)))
 		       cat("on ", length(healthy_control_indexes), " feature(s)\n", sep="")
 		       
 		       countFeatures <- 1
